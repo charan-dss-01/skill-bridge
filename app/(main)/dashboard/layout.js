@@ -1,12 +1,13 @@
-import { BarLoader } from "react-spinners";
-import { Suspense } from "react";
+"use client";
 
-export default function Layout({ children }) {
+import { BarLoader } from "react-spinners";
+import { Suspense, useState } from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { BarChart3, Target } from "lucide-react";
+
+export default function DashboardLayout({ children }) {
   return (
     <div className="px-5">
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-6xl font-bold gradient-title">Industry Insights</h1>
-      </div>
       <Suspense
         fallback={<BarLoader className="mt-4" width={"100%"} color="gray" />}
       >
