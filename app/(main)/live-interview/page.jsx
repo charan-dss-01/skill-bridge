@@ -1,16 +1,191 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Mic, MicOff, Loader2, ArrowRight, Play, CheckCircle2, AlertTriangle, MessageSquare, PanelRightClose, PanelRightOpen, XSquare } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Mic,
+    Loader2,
+    ArrowRight,
+    CheckCircle2,
+    AlertTriangle,
+    MessageSquare,
+    PanelRightClose,
+    PanelRightOpen,
+    XSquare,
+    Trophy,
+    Zap,
+    Brain,
+    Target,
+    BarChart3,
+    TrendingUp,
+    Sparkles,
+} from "lucide-react";
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+    Cell,
+    RadarChart,
+    PolarGrid,
+    PolarAngleAxis,
+    PolarRadiusAxis,
+    Radar,
+} from "recharts";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
+// ============================================================================
+// Animated Counter Hook
+// ============================================================================
+function useCountUp(target, duration = 1500) {
+    const [count, setCount] = useState(0);
+    const animRef = useRef(null);
+
+    useEffect(() => {
+        if (target === null || target === undefined) return;
+
+        const startTime = performance.now();
+        const startValue = 0;
+
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.round(startValue + (target - startValue) * eased));
+
+            if (progress < 1) {
+                animRef.current = requestAnimationFrame(animate);
+            }
+        };
+
+        animRef.current = requestAnimationFrame(animate);
+        return () => {
+            if (animRef.current) cancelAnimationFrame(animRef.current);
+        };
+    }, [target, duration]);
+
+    return count;
+}
+
+// ============================================================================
+// Score Ring Component (SVG-based progress ring)
+// ============================================================================
+function ScoreRing({ score, size = 160, strokeWidth = 10, label }) {
+    const animatedScore = useCountUp(score);
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (animatedScore / 100) * circumference;
+
+    const getColor = (s) => {
+        if (s >= 80) return "hsl(142, 76%, 40%)";   // green
+        if (s >= 50) return "hsl(45, 93%, 50%)";     // yellow
+        return "hsl(0, 84%, 60%)";                    // red
+    };
+
+    return (
+        <div className="relative inline-flex items-center justify-center">
+            <svg width={size} height={size} className="-rotate-90">
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="hsl(var(--muted))"
+                    strokeWidth={strokeWidth}
+                />
+                <circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    fill="none"
+                    stroke={getColor(score)}
+                    strokeWidth={strokeWidth}
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    className="transition-all duration-[1500ms] ease-out"
+                />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-4xl font-bold text-foreground">{animatedScore}</span>
+                <span className="text-xs text-muted-foreground font-medium">{label || "/ 100"}</span>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// Score Badge (Excellent / Good / Needs Improvement)
+// ============================================================================
+function StatusBadge({ score }) {
+    if (score >= 80) {
+        return (
+            <Badge className="bg-green-500/15 text-green-500 border-green-500/25 hover:bg-green-500/20 text-sm px-3 py-1">
+                <Trophy className="w-3.5 h-3.5 mr-1.5" /> Excellent
+            </Badge>
+        );
+    }
+    if (score >= 50) {
+        return (
+            <Badge className="bg-yellow-500/15 text-yellow-500 border-yellow-500/25 hover:bg-yellow-500/20 text-sm px-3 py-1">
+                <Zap className="w-3.5 h-3.5 mr-1.5" /> Good
+            </Badge>
+        );
+    }
+    return (
+        <Badge className="bg-red-500/15 text-red-500 border-red-500/25 hover:bg-red-500/20 text-sm px-3 py-1">
+            <Target className="w-3.5 h-3.5 mr-1.5" /> Needs Improvement
+        </Badge>
+    );
+}
+
+// ============================================================================
+// Animated Score Card
+// ============================================================================
+function ScoreCard({ icon: Icon, label, score, color }) {
+    const animatedScore = useCountUp(score);
+
+    const colorMap = {
+        blue: { text: "text-blue-500", bg: "bg-blue-500/10", bar: "bg-blue-500" },
+        purple: { text: "text-purple-500", bg: "bg-purple-500/10", bar: "bg-purple-500" },
+        amber: { text: "text-amber-500", bg: "bg-amber-500/10", bar: "bg-amber-500" },
+        green: { text: "text-green-500", bg: "bg-green-500/10", bar: "bg-green-500" },
+    };
+
+    const c = colorMap[color] || colorMap.blue;
+
+    return (
+        <Card className="hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+            <CardContent className="pt-6">
+                <div className="flex items-center justify-between mb-3">
+                    <div className={`p-2 rounded-lg ${c.bg}`}>
+                        <Icon className={`w-5 h-5 ${c.text}`} />
+                    </div>
+                    <span className={`text-2xl font-bold ${c.text}`}>{animatedScore}</span>
+                </div>
+                <p className="text-sm text-muted-foreground font-medium mb-2">{label}</p>
+                <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                        className={`h-2 rounded-full ${c.bar} transition-all duration-[1500ms] ease-out`}
+                        style={{ width: `${animatedScore}%` }}
+                    />
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+// ============================================================================
+// Main Page Component
+// ============================================================================
 export default function LiveInterviewPage() {
     const { user, isLoaded } = useUser();
     const [questions, setQuestions] = useState([]);
@@ -26,8 +201,8 @@ export default function LiveInterviewPage() {
     const recognitionRef = useRef(null);
     const synthRef = useRef(null);
 
+    // ---- Speech APIs (unchanged) ----
     useEffect(() => {
-        // Initialize Speech APIs
         if (typeof window !== "undefined") {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
@@ -52,19 +227,14 @@ export default function LiveInterviewPage() {
                     setIsRecording(false);
                 };
             } else {
-                toast.warning("Speech recognition is not supported in your browser. Fallback to text input isn't fully implemented in this cinematic demo, but you can type below!");
+                toast.warning("Speech recognition is not supported in your browser.");
             }
-
             synthRef.current = window.speechSynthesis;
         }
 
         return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
-            if (synthRef.current) {
-                synthRef.current.cancel();
-            }
+            if (recognitionRef.current) recognitionRef.current.stop();
+            if (synthRef.current) synthRef.current.cancel();
         };
     }, []);
 
@@ -74,6 +244,7 @@ export default function LiveInterviewPage() {
         }
     }, [isLoaded, user]);
 
+    // ---- Business logic (completely unchanged) ----
     const startInterview = async () => {
         setIsAIThinking(true);
         try {
@@ -87,10 +258,8 @@ export default function LiveInterviewPage() {
             });
 
             if (!res.ok) throw new Error("Failed to generate questions");
-
             const data = await res.json();
             setQuestions(data.questions);
-
             setIsAIThinking(false);
 
             if (data.questions.length > 0) {
@@ -105,20 +274,17 @@ export default function LiveInterviewPage() {
 
     const speak = (text) => {
         if (synthRef.current) {
-            synthRef.current.cancel(); // Stop any current speech
+            synthRef.current.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
-
             utterance.onstart = () => setIsAISpeaking(true);
             utterance.onend = () => setIsAISpeaking(false);
             utterance.onerror = () => setIsAISpeaking(false);
 
-            // Try to find a good English voice
             const voices = synthRef.current.getVoices();
-            const preferredVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('en')) ||
-                voices.find(v => v.lang.includes('en'));
-            if (preferredVoice) {
-                utterance.voice = preferredVoice;
-            }
+            const preferredVoice =
+                voices.find((v) => v.name.includes("Google") && v.lang.includes("en")) ||
+                voices.find((v) => v.lang.includes("en"));
+            if (preferredVoice) utterance.voice = preferredVoice;
 
             synthRef.current.speak(utterance);
         }
@@ -126,9 +292,7 @@ export default function LiveInterviewPage() {
 
     const toggleRecording = () => {
         if (isRecording) {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
-            }
+            if (recognitionRef.current) recognitionRef.current.stop();
             setIsRecording(false);
         } else {
             if (recognitionRef.current) {
@@ -147,7 +311,6 @@ export default function LiveInterviewPage() {
             return;
         }
 
-        // Stop recording and speaking if active
         if (isRecording && recognitionRef.current) {
             recognitionRef.current.stop();
             setIsRecording(false);
@@ -157,15 +320,13 @@ export default function LiveInterviewPage() {
             setIsAISpeaking(false);
         }
 
-        // Save to transcript
         const newTranscript = [
             ...transcript,
-            { question: questions[currentIndex], answer: currentAnswer.trim() }
+            { question: questions[currentIndex], answer: currentAnswer.trim() },
         ];
         setTranscript(newTranscript);
         setCurrentAnswer("");
 
-        // Move to next question or evaluate
         if (currentIndex < questions.length - 1) {
             const nextIndex = currentIndex + 1;
             setCurrentIndex(nextIndex);
@@ -186,7 +347,6 @@ export default function LiveInterviewPage() {
         }
 
         let finalTranscript = [...transcript];
-        // Include current partial answer if it has text
         if (currentAnswer.trim()) {
             finalTranscript.push({ question: questions[currentIndex], answer: currentAnswer.trim() });
         }
@@ -212,7 +372,6 @@ export default function LiveInterviewPage() {
             });
 
             if (!res.ok) throw new Error("Failed to evaluate interview");
-
             const data = await res.json();
             setFinalReport(data);
         } catch (error) {
@@ -223,147 +382,242 @@ export default function LiveInterviewPage() {
         }
     };
 
-    // Render Final Report
+    // ========================================================================
+    //  RENDER: Final Report
+    // ========================================================================
     if (finalReport) {
+        // Radar chart data
+        const radarData = [
+            { subject: "Technical", value: finalReport.technicalScore, fullMark: 100 },
+            { subject: "Communication", value: finalReport.communicationScore, fullMark: 100 },
+            { subject: "Confidence", value: finalReport.confidenceScore, fullMark: 100 },
+            { subject: "Problem Solving", value: Math.round((finalReport.technicalScore + finalReport.overallScore) / 2), fullMark: 100 },
+            { subject: "Clarity", value: Math.round((finalReport.communicationScore + finalReport.confidenceScore) / 2), fullMark: 100 },
+        ];
+
+        // Bar chart data
+        const barData = [
+            { name: "Technical", score: finalReport.technicalScore },
+            { name: "Communication", score: finalReport.communicationScore },
+            { name: "Confidence", score: finalReport.confidenceScore },
+        ];
+
+        const getBarColor = (score) => {
+            if (score >= 80) return "hsl(142, 76%, 40%)";
+            if (score >= 50) return "hsl(45, 93%, 50%)";
+            return "hsl(0, 84%, 60%)";
+        };
+
         return (
-            <div className="min-h-screen bg-zinc-950 text-white pt-24 pb-12 px-4 md:px-8">
-                <div className="max-w-4xl mx-auto space-y-8">
-                    <div className="text-center space-y-4">
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">Interview Completed</h1>
-                        <p className="text-zinc-400">Here is your comprehensive performance analysis.</p>
+            <div className="min-h-screen bg-background text-foreground pt-24 pb-12 px-4 md:px-8">
+                <div className="max-w-6xl mx-auto space-y-8">
+                    {/* Header */}
+                    <div className="text-center space-y-3 animate-in fade-in-50 duration-500">
+                        <h1 className="text-5xl font-bold gradient-title">Interview Complete</h1>
+                        <p className="text-muted-foreground text-lg">
+                            Here is your comprehensive performance analysis
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <Card className="bg-zinc-900 border-zinc-800 col-span-1 md:col-span-4 p-6">
-                            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-                                <div className="flex flex-col items-center md:items-start space-y-2 w-full md:w-1/3">
-                                    <span className="text-zinc-400 font-medium tracking-wider uppercase text-sm">Overall Target</span>
-                                    <div className="flex items-baseline space-x-2">
-                                        <span className="text-7xl font-extrabold text-white">{Math.round(finalReport.overallScore)}</span>
-                                        <span className="text-xl text-zinc-500">/100</span>
+                    {/* Hero Score Section */}
+                    <div className="animate-in fade-in-50 slide-in-from-bottom-4 duration-700">
+                        <Card className="overflow-hidden">
+                            <CardContent className="pt-8 pb-8">
+                                <div className="flex flex-col lg:flex-row items-center gap-8">
+                                    {/* Score Ring */}
+                                    <div className="flex flex-col items-center gap-4">
+                                        <ScoreRing score={finalReport.overallScore} size={180} strokeWidth={12} label="Overall" />
+                                        <StatusBadge score={finalReport.overallScore} />
+                                        <p className="text-xs text-muted-foreground text-center max-w-[200px]">
+                                            Based on industry standards for {user?.publicMetadata?.industry || "Software Engineering"}
+                                        </p>
                                     </div>
-                                    <p className="text-sm text-zinc-400 mt-2 text-center md:text-left">
-                                        Based on industry standards for {user?.publicMetadata?.industry || "Software Engineering"}.
-                                    </p>
-                                </div>
 
-                                <div className="w-full md:w-2/3 h-[200px]">
+                                    {/* Radar Chart */}
+                                    <div className="flex-1 w-full min-h-[280px]">
+                                        <ResponsiveContainer width="100%" height={280}>
+                                            <RadarChart data={radarData}>
+                                                <PolarGrid stroke="hsl(var(--border))" />
+                                                <PolarAngleAxis
+                                                    dataKey="subject"
+                                                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12, fontWeight: 500 }}
+                                                />
+                                                <PolarRadiusAxis
+                                                    angle={90}
+                                                    domain={[0, 100]}
+                                                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                                                />
+                                                <Radar
+                                                    name="Score"
+                                                    dataKey="value"
+                                                    stroke="hsl(var(--chart-1))"
+                                                    fill="hsl(var(--chart-1))"
+                                                    fillOpacity={0.2}
+                                                    strokeWidth={2}
+                                                />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Score Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-in fade-in-50 slide-in-from-bottom-4 duration-700 delay-150">
+                        <ScoreCard icon={Brain} label="Technical Skills" score={finalReport.technicalScore} color="blue" />
+                        <ScoreCard icon={MessageSquare} label="Communication" score={finalReport.communicationScore} color="purple" />
+                        <ScoreCard icon={Zap} label="Confidence Level" score={finalReport.confidenceScore} color="amber" />
+                    </div>
+
+                    {/* Bar Chart */}
+                    <div className="animate-in fade-in-50 slide-in-from-bottom-4 duration-700 delay-300">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <BarChart3 className="w-5 h-5 text-primary" />
+                                    Performance Breakdown
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-[200px]">
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={[
-                                            { name: 'Technical', score: finalReport.technicalScore, color: '#3b82f6' },
-                                            { name: 'Communication', score: finalReport.communicationScore, color: '#6366f1' },
-                                            { name: 'Confidence', score: finalReport.confidenceScore, color: '#a855f7' }
-                                        ]} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                                            <XAxis type="number" domain={[0, 100]} stroke="#52525b" />
-                                            <YAxis dataKey="name" type="category" stroke="#a1a1aa" fontWeight="500" width={100} />
+                                        <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                            <XAxis type="number" domain={[0, 100]} stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                                            <YAxis dataKey="name" type="category" stroke="hsl(var(--muted-foreground))" fontSize={12} width={110} />
                                             <Tooltip
-                                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                                contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '8px' }}
+                                                cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }}
+                                                contentStyle={{
+                                                    backgroundColor: "hsl(var(--card))",
+                                                    borderColor: "hsl(var(--border))",
+                                                    borderRadius: "8px",
+                                                    color: "hsl(var(--foreground))",
+                                                }}
                                             />
-                                            <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={24}>
-                                                {
-                                                    [
-                                                        { name: 'Technical', score: finalReport.technicalScore, color: '#3b82f6' },
-                                                        { name: 'Communication', score: finalReport.communicationScore, color: '#6366f1' },
-                                                        { name: 'Confidence', score: finalReport.confidenceScore, color: '#a855f7' }
-                                                    ].map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                                    ))
-                                                }
+                                            <Bar dataKey="score" radius={[0, 6, 6, 0]} barSize={28}>
+                                                {barData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={getBarColor(entry.score)} />
+                                                ))}
                                             </Bar>
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
-                            </div>
+                            </CardContent>
                         </Card>
+                    </div>
 
-                        <Card className="bg-zinc-900 border-zinc-800 col-span-1 md:col-span-2">
+                    {/* Strengths & Weaknesses */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-700 delay-500">
+                        <Card className="hover:shadow-lg transition-shadow duration-300">
                             <CardHeader>
-                                <CardTitle className="flex items-center text-green-400">
-                                    <CheckCircle2 className="w-5 h-5 mr-2" /> Strengths
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                    Strengths
+                                    <Badge className="ml-auto bg-green-500/15 text-green-500 border-green-500/25">
+                                        {finalReport.strengths?.length || 0}
+                                    </Badge>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-3">
                                     {finalReport.strengths.map((s, i) => (
-                                        <li key={i} className="flex items-start">
-                                            <span className="text-green-500 mr-2">•</span>
-                                            <span className="text-zinc-300 text-sm leading-relaxed">{s}</span>
+                                        <li key={i} className="flex items-start gap-3 group">
+                                            <div className="mt-1 w-2 h-2 rounded-full bg-green-500 shrink-0 group-hover:scale-125 transition-transform" />
+                                            <span className="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground transition-colors">{s}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-zinc-900 border-zinc-800 col-span-1 md:col-span-2">
+                        <Card className="hover:shadow-lg transition-shadow duration-300">
                             <CardHeader>
-                                <CardTitle className="flex items-center text-amber-400">
-                                    <AlertTriangle className="w-5 h-5 mr-2" /> Areas to Improve
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <AlertTriangle className="w-5 h-5 text-amber-500" />
+                                    Areas to Improve
+                                    <Badge className="ml-auto bg-amber-500/15 text-amber-500 border-amber-500/25">
+                                        {finalReport.weaknesses?.length || 0}
+                                    </Badge>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-3">
                                     {finalReport.weaknesses.map((w, i) => (
-                                        <li key={i} className="flex items-start">
-                                            <span className="text-amber-500 mr-2">•</span>
-                                            <span className="text-zinc-300 text-sm leading-relaxed">{w}</span>
+                                        <li key={i} className="flex items-start gap-3 group">
+                                            <div className="mt-1 w-2 h-2 rounded-full bg-amber-500 shrink-0 group-hover:scale-125 transition-transform" />
+                                            <span className="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground transition-colors">{w}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </CardContent>
                         </Card>
+                    </div>
 
-                        <Card className="bg-zinc-900 border-zinc-800 col-span-1 md:col-span-4">
-                            <CardContent className="pt-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-4">
-                                        <h3 className="text-lg font-semibold flex items-center text-indigo-400">
-                                            <MessageSquare className="w-5 h-5 mr-2" /> Filler Word Analysis
-                                        </h3>
-                                        <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800/50">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <span className="text-zinc-400 text-sm">Total Fillers Detected</span>
-                                                <Badge variant="outline" className="text-indigo-400 border-indigo-400/30 bg-indigo-400/10">
-                                                    {finalReport.fillerWordAnalysis.fillerCount}
+                    {/* Filler Analysis + Action Plan */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-700 delay-700">
+                        <Card className="hover:shadow-lg transition-shadow duration-300">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <MessageSquare className="w-5 h-5 text-primary" />
+                                    Filler Word Analysis
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex justify-between items-center p-3 rounded-lg bg-muted/50">
+                                    <span className="text-sm text-muted-foreground">Total Fillers Detected</span>
+                                    <Badge variant="secondary" className="font-bold">
+                                        {finalReport.fillerWordAnalysis?.fillerCount ?? 0}
+                                    </Badge>
+                                </div>
+                                {finalReport.fillerWordAnalysis?.repeatedPhrases?.length > 0 && (
+                                    <div>
+                                        <span className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block font-medium">
+                                            Repeated Phrases
+                                        </span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {finalReport.fillerWordAnalysis.repeatedPhrases.map((p, i) => (
+                                                <Badge key={i} variant="outline" className="font-normal">
+                                                    {p}
                                                 </Badge>
-                                            </div>
-                                            {finalReport.fillerWordAnalysis.repeatedPhrases.length > 0 && (
-                                                <div className="mb-4">
-                                                    <span className="text-zinc-400 text-xs uppercase tracking-wider mb-2 block">Repeated Phrases</span>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {finalReport.fillerWordAnalysis.repeatedPhrases.map((p, i) => (
-                                                            <Badge key={i} variant="secondary" className="bg-zinc-800 text-zinc-300 font-normal hover:bg-zinc-700">{p}</Badge>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            <p className="text-sm text-zinc-300 leading-relaxed border-t border-zinc-800/50 pt-4 mt-2">
-                                                {finalReport.fillerWordAnalysis.improvementSuggestion}
-                                            </p>
+                                            ))}
                                         </div>
                                     </div>
+                                )}
+                                {finalReport.fillerWordAnalysis?.improvementSuggestion && (
+                                    <div className="border-t pt-4">
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                            {finalReport.fillerWordAnalysis.improvementSuggestion}
+                                        </p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
 
-                                    <div className="space-y-4">
-                                        <h3 className="text-lg font-semibold flex items-center text-blue-400">
-                                            <ArrowRight className="w-5 h-5 mr-2" /> Personalized Action Plan
-                                        </h3>
-                                        <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800/50 h-full">
-                                            <p className="text-sm text-zinc-300 leading-relaxed">
-                                                {finalReport.improvementPlan}
-                                            </p>
-                                        </div>
-                                    </div>
+                        <Card className="hover:shadow-lg transition-shadow duration-300">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                    <Sparkles className="w-5 h-5 text-primary" />
+                                    Personalized Action Plan
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        {finalReport.improvementPlan}
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
 
-                    <div className="flex justify-center space-x-4 pt-4">
-                        <Button onClick={() => window.location.reload()} size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4 animate-in fade-in-50 duration-700 delay-1000">
+                        <Button onClick={() => window.location.reload()} size="lg" className="px-8">
+                            <TrendingUp className="w-4 h-4 mr-2" />
                             Retry Interview
                         </Button>
                         <Link href="/dashboard">
-                            <Button size="lg" variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+                            <Button size="lg" variant="outline" className="px-8 w-full sm:w-auto">
                                 Back to Dashboard
                             </Button>
                         </Link>
@@ -373,91 +627,114 @@ export default function LiveInterviewPage() {
         );
     }
 
-    // Render Loading or Interview Room
+    // ========================================================================
+    //  RENDER: Interview Room
+    // ========================================================================
     return (
-        <div className="min-h-screen bg-zinc-950 relative overflow-hidden flex flex-col md:flex-row">
-            {/* Background ambient light */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-900/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="min-h-screen bg-background relative overflow-hidden flex flex-col md:flex-row">
+            {/* Subtle ambient gradient */}
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
             {/* Main Interview Area */}
             <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 w-full md:w-2/3 h-[60vh] md:h-screen">
-
                 {isAIThinking || questions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center space-y-6">
-                        <div className="w-32 h-32 rounded-full border-4 border-zinc-800 border-t-indigo-500 animate-spin" />
-                        <p className="text-indigo-400 animate-pulse font-medium text-lg tracking-wide">
-                            {questions.length === 0 ? "Preparing your custom interview..." : "Evaluating your answers..."}
+                        <div className="w-28 h-28 rounded-full border-4 border-muted border-t-primary animate-spin" />
+                        <p className="text-primary animate-pulse font-medium text-lg tracking-wide">
+                            {questions.length === 0
+                                ? "Preparing your custom interview..."
+                                : "Evaluating your answers..."}
                         </p>
                     </div>
                 ) : (
-                    <div className="w-full max-w-2xl flex flex-col items-center space-y-12">
-
+                    <div className="w-full max-w-2xl flex flex-col items-center space-y-10">
+                        {/* Question counter + End Early */}
                         <div className="w-full flex justify-between items-center px-4">
-                            <Badge variant="outline" className="bg-zinc-900/50 text-zinc-400 border-zinc-800">
+                            <Badge variant="outline">
                                 Question {currentIndex + 1} of {questions.length}
                             </Badge>
-
-                            <Button variant="ghost" size="sm" onClick={handleEndEarly} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 hidden md:flex">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleEndEarly}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10 hidden md:flex"
+                            >
                                 <XSquare className="w-4 h-4 mr-2" /> End Early
                             </Button>
                         </div>
-                        <div className="w-full px-4 flex space-x-1">
+
+                        {/* Progress bar segments */}
+                        <div className="w-full px-4 flex space-x-1.5">
                             {[...Array(questions.length)].map((_, i) => (
-                                <div key={i} className={`h-1.5 w-full rounded-full transition-all duration-300 ${i <= currentIndex ? 'bg-indigo-500' : 'bg-zinc-800'}`} />
+                                <div
+                                    key={i}
+                                    className={`h-1.5 w-full rounded-full transition-all duration-500 ${i <= currentIndex ? "bg-primary" : "bg-muted"
+                                        }`}
+                                />
                             ))}
                         </div>
 
                         {/* AI Avatar */}
                         <div className="relative group cursor-pointer" onClick={() => speak(questions[currentIndex])}>
-                            <div className={`absolute inset-0 rounded-full bg-indigo-500/20 blur-xl transition-all duration-500 ${isAISpeaking ? 'scale-150 opacity-100' : 'scale-100 opacity-0 group-hover:opacity-50'}`} />
-                            <div className={`relative w-32 h-32 rounded-full bg-zinc-900 border-2 flex items-center justify-center shadow-2xl transition-all duration-300 z-10 ${isAISpeaking ? 'border-indigo-400 shadow-indigo-500/20' : 'border-zinc-800'}`}>
+                            <div
+                                className={`absolute inset-0 rounded-full bg-primary/15 blur-xl transition-all duration-500 ${isAISpeaking ? "scale-150 opacity-100" : "scale-100 opacity-0 group-hover:opacity-50"
+                                    }`}
+                            />
+                            <div
+                                className={`relative w-28 h-28 rounded-full bg-card border-2 flex items-center justify-center shadow-xl transition-all duration-300 z-10 ${isAISpeaking ? "border-primary shadow-primary/20" : "border-border"
+                                    }`}
+                            >
                                 {isAISpeaking ? (
                                     <div className="flex space-x-1">
-                                        {[1, 2, 3].map(i => (
-                                            <div key={i} className="w-1.5 h-6 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                                        {[1, 2, 3].map((i) => (
+                                            <div
+                                                key={i}
+                                                className="w-1.5 h-6 bg-primary rounded-full animate-bounce"
+                                                style={{ animationDelay: `${i * 0.15}s` }}
+                                            />
                                         ))}
                                     </div>
                                 ) : (
-                                    <Mic className="w-8 h-8 text-zinc-600" />
+                                    <Mic className="w-7 h-7 text-muted-foreground" />
                                 )}
                             </div>
                         </div>
 
-                        <div className="text-center w-full px-6 min-h-[100px] flex items-center justify-center">
-                            <h2 className="text-2xl md:text-3xl font-medium text-white leading-relaxed">
-                                "{questions[currentIndex]}"
+                        {/* Question text */}
+                        <div className="text-center w-full px-6 min-h-[80px] flex items-center justify-center">
+                            <h2 className="text-2xl md:text-3xl font-medium text-foreground leading-relaxed">
+                                &ldquo;{questions[currentIndex]}&rdquo;
                             </h2>
                         </div>
 
-                        <div className="mt-12 flex flex-col items-center space-y-6">
+                        {/* Recording Controls */}
+                        <div className="mt-8 flex flex-col items-center space-y-5">
                             <button
                                 onClick={toggleRecording}
-                                className={`relative group w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg
-                  ${isRecording
-                                        ? 'bg-red-500/10 border-2 border-red-500 shadow-red-500/20'
-                                        : 'bg-zinc-900 border border-zinc-700 hover:border-zinc-500 hover:bg-zinc-800'
+                                className={`relative group w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${isRecording
+                                        ? "bg-destructive/10 border-2 border-destructive shadow-destructive/20"
+                                        : "bg-card border border-border hover:border-primary/50 hover:bg-accent"
                                     }`}
                             >
                                 {isRecording ? (
                                     <>
-                                        <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping" />
+                                        <div className="absolute inset-0 rounded-full bg-destructive/20 animate-ping" />
                                         <div className="relative flex items-center justify-center">
-                                            <div className="w-6 h-6 rounded-sm bg-red-500 animate-pulse" />
+                                            <div className="w-6 h-6 rounded-sm bg-destructive animate-pulse" />
                                         </div>
                                     </>
                                 ) : (
-                                    <Mic className="w-8 h-8 text-zinc-300 group-hover:text-white transition-colors" />
+                                    <Mic className="w-7 h-7 text-muted-foreground group-hover:text-foreground transition-colors" />
                                 )}
                             </button>
 
                             <div className="flex flex-col items-center space-y-2">
-                                <p className={`text-sm tracking-wide ${isRecording ? 'text-red-400 animate-pulse' : 'text-zinc-500'}`}>
-                                    {isRecording ? 'Listening...' : 'Tap Mic to Answer'}
+                                <p className={`text-sm tracking-wide ${isRecording ? "text-destructive animate-pulse" : "text-muted-foreground"}`}>
+                                    {isRecording ? "Listening..." : "Tap Mic to Answer"}
                                 </p>
 
-                                {/* Visible fallback for typing */}
                                 <textarea
-                                    className="mt-4 bg-zinc-900 border border-zinc-800 rounded-lg text-white p-3 w-64 md:w-96 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                                    className="mt-3 bg-card border border-border rounded-lg text-foreground p-3 w-64 md:w-96 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all resize-none"
                                     placeholder="Or type your answer here..."
                                     value={currentAnswer}
                                     onChange={(e) => setCurrentAnswer(e.target.value)}
@@ -466,40 +743,60 @@ export default function LiveInterviewPage() {
                             </div>
                         </div>
 
+                        {/* Next / Complete Button */}
                         {currentAnswer.trim() && !isRecording && (
-                            <Button
-                                onClick={handleNextQuestion}
-                                className="bg-white text-black hover:bg-zinc-200 rounded-full px-8 py-6 text-lg font-medium shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all hover:shadow-[0_0_40px_rgba(255,255,255,0.2)]"
-                            >
-                                {currentIndex < questions.length - 1 ? "Next Question" : "Complete Interview"} <ArrowRight className="ml-2 w-5 h-5" />
+                            <Button onClick={handleNextQuestion} size="lg" className="px-8 py-6 text-lg font-medium rounded-full shadow-lg hover:shadow-xl transition-all">
+                                {currentIndex < questions.length - 1 ? "Next Question" : "Complete Interview"}
+                                <ArrowRight className="ml-2 w-5 h-5" />
                             </Button>
                         )}
-
                     </div>
                 )}
             </div>
 
-            {/* Side Transcript Toggle Button */}
+            {/* Transcript Toggle */}
             {!isAIThinking && questions.length > 0 && (
                 <div className="absolute top-6 right-6 z-50">
-                    <Button variant="outline" className="bg-zinc-900/50 text-zinc-300 border-zinc-800 backdrop-blur-md hover:bg-zinc-800 hover:text-white" onClick={() => setShowTranscript(!showTranscript)}>
-                        {showTranscript ? <><PanelRightClose className="w-4 h-4 md:mr-2" /> <span className="hidden md:inline">Hide Transcript</span></> : <><PanelRightOpen className="w-4 h-4 md:mr-2" /> <span className="hidden md:inline">Show Transcript</span></>}
+                    <Button
+                        variant="outline"
+                        className="backdrop-blur-md"
+                        onClick={() => setShowTranscript(!showTranscript)}
+                    >
+                        {showTranscript ? (
+                            <>
+                                <PanelRightClose className="w-4 h-4 md:mr-2" />
+                                <span className="hidden md:inline">Hide Transcript</span>
+                            </>
+                        ) : (
+                            <>
+                                <PanelRightOpen className="w-4 h-4 md:mr-2" />
+                                <span className="hidden md:inline">Show Transcript</span>
+                            </>
+                        )}
                     </Button>
                 </div>
             )}
 
-            {/* End Early Mobile Button */}
+            {/* End Early Mobile */}
             {!isAIThinking && questions.length > 0 && (
                 <div className="absolute top-6 left-6 z-50 md:hidden">
-                    <Button variant="outline" size="sm" onClick={handleEndEarly} className="bg-zinc-900/50 text-red-400 border-zinc-800 backdrop-blur-md hover:bg-zinc-800 hover:text-red-300 flex">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleEndEarly}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
                         <XSquare className="w-4 h-4 mr-2" /> End
                     </Button>
                 </div>
             )}
 
             {/* Side Transcript Panel */}
-            <div className={`fixed inset-y-0 right-0 w-[85vw] sm:w-[50vw] md:w-[400px] bg-zinc-900/80 backdrop-blur-xl border-l border-zinc-800/50 p-6 flex flex-col h-full overflow-y-auto transition-transform duration-500 ease-in-out z-40 transform ${showTranscript ? 'translate-x-0' : 'translate-x-full'}`}>
-                <h3 className="text-zinc-400 font-medium tracking-wider uppercase text-xs mb-6 flex items-center sticky top-0 bg-zinc-900/90 py-2 z-10 w-full">
+            <div
+                className={`fixed inset-y-0 right-0 w-[85vw] sm:w-[50vw] md:w-[400px] bg-card/95 backdrop-blur-xl border-l border-border p-6 flex flex-col h-full overflow-y-auto transition-transform duration-500 ease-in-out z-40 transform ${showTranscript ? "translate-x-0" : "translate-x-full"
+                    }`}
+            >
+                <h3 className="text-muted-foreground font-medium tracking-wider uppercase text-xs mb-6 flex items-center sticky top-0 bg-card/90 py-2 z-10 w-full">
                     <MessageSquare className="w-3 h-3 mr-2" /> Live Transcript
                 </h3>
 
@@ -507,24 +804,25 @@ export default function LiveInterviewPage() {
                     {transcript.map((item, idx) => (
                         <div key={idx} className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                             <div className="flex justify-start">
-                                <div className="bg-zinc-800/80 text-zinc-300 text-sm px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%] border border-zinc-700/50">
+                                <div className="bg-muted text-foreground text-sm px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%] border">
                                     {item.question}
                                 </div>
                             </div>
                             <div className="flex justify-end">
-                                <div className="bg-indigo-600/20 text-indigo-100 text-sm px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] border border-indigo-500/20">
+                                <div className="bg-primary/10 text-foreground text-sm px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] border border-primary/20">
                                     {item.answer}
                                 </div>
                             </div>
                         </div>
                     ))}
 
-                    {/* Current Live Answer */}
                     {currentAnswer && (
                         <div className="flex justify-end animate-in fade-in">
-                            <div className="bg-indigo-600/10 text-indigo-200/80 text-sm px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] border border-indigo-500/10">
+                            <div className="bg-primary/5 text-muted-foreground text-sm px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] border border-primary/10">
                                 {currentAnswer}
-                                {isRecording && <span className="inline-block w-1.5 h-4 ml-1 align-middle bg-indigo-400 animate-pulse rounded-full" />}
+                                {isRecording && (
+                                    <span className="inline-block w-1.5 h-4 ml-1 align-middle bg-primary animate-pulse rounded-full" />
+                                )}
                             </div>
                         </div>
                     )}

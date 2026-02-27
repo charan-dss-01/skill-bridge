@@ -1,32 +1,32 @@
 export const faqs = [
   {
-    question: "What makes Sensai unique as a career development tool?",
+    question: "What makes Skill Bridge unique as a career development platform?",
     answer:
-      "Sensai combines AI-powered career tools with industry-specific insights to help you advance your career. Our platform offers three main features: an intelligent resume builder, a cover letter generator, and an adaptive interview preparation system. Each tool is tailored to your industry and skills, providing personalized guidance for your professional journey.",
+      "Skill Bridge combines AI-powered career tools with industry-specific insights to help you advance professionally. Our platform offers three core features: an intelligent resume builder, a dynamic cover letter generator, and an adaptive interview preparation system. Each tool is tailored to your industry and skills, providing personalized guidance throughout your career journey.",
   },
   {
-    question: "How does Sensai create tailored content?",
+    question: "How does Skill Bridge create tailored content?",
     answer:
-      "Sensai learns about your industry, experience, and skills during onboarding. It then uses this information to generate customized resumes, cover letters, and interview questions. The content is specifically aligned with your professional background and industry standards, making it highly relevant and effective.",
+      "Skill Bridge learns about your industry, experience, and skills during onboarding. It uses this information to generate customized resumes, cover letters, and interview questions aligned with your professional background and current industry standards, ensuring relevance and impact.",
   },
   {
-    question: "How accurate and up-to-date are Sensai's industry insights?",
+    question: "How accurate and up-to-date are Skill Bridge's industry insights?",
     answer:
-      "We update our industry insights weekly using advanced AI analysis of current market trends. This includes salary data, in-demand skills, and industry growth patterns. Our system constantly evolves to ensure you have the most relevant information for your career decisions.",
+      "We continuously update our industry insights using advanced AI analysis of current market trends. This includes salary benchmarks, in-demand skills, and growth patterns. Our system evolves regularly to ensure you have the most accurate and relevant information for making informed career decisions.",
   },
   {
-    question: "Is my data secure with Sensai?",
+    question: "Is my data secure with Skill Bridge?",
     answer:
-      "Absolutely. We prioritize the security of your professional information. All data is encrypted and securely stored using industry-standard practices. We use Clerk for authentication and never share your personal information with third parties.",
+      "Absolutely. We prioritize the security of your professional information. All data is encrypted and securely stored using industry-standard best practices. We use secure authentication systems and never share your personal information with third parties.",
   },
   {
     question: "How can I track my interview preparation progress?",
     answer:
-      "Sensai tracks your performance across multiple practice interviews, providing detailed analytics and improvement suggestions. You can view your progress over time, identify areas for improvement, and receive AI-generated tips to enhance your interview skills based on your responses.",
+      "Skill Bridge tracks your performance across multiple practice interviews and provides detailed analytics along with personalized improvement suggestions. You can monitor your progress over time, identify skill gaps, and receive AI-generated feedback to strengthen your interview performance.",
   },
   {
     question: "Can I edit the AI-generated content?",
     answer:
-      "Yes! While Sensai generates high-quality initial content, you have full control to edit and customize all generated resumes, cover letters, and other content. Our markdown editor makes it easy to refine the content to perfectly match your needs.",
+      "Yes. While Skill Bridge generates high-quality initial drafts, you have full control to edit and customize all resumes, cover letters, and other generated materials. Our built-in editor makes it easy to refine content so it perfectly matches your goals and personal style.",
   },
 ];
