@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 import {
     Mic,
     Loader2,
@@ -675,27 +676,49 @@ export default function LiveInterviewPage() {
                         </div>
 
                         {/* AI Avatar */}
-                        <div className="relative group cursor-pointer" onClick={() => speak(questions[currentIndex])}>
+                        {/* AI Avatar */}
+                        <div
+                            className="relative group cursor-pointer"
+                            onClick={() => speak(questions[currentIndex])}
+                        >
+                            {/* Glow Effect */}
                             <div
-                                className={`absolute inset-0 rounded-full bg-primary/15 blur-xl transition-all duration-500 ${isAISpeaking ? "scale-150 opacity-100" : "scale-100 opacity-0 group-hover:opacity-50"
+                                className={`absolute inset-0 rounded-full bg-primary/20 blur-2xl transition-all duration-500 ${isAISpeaking
+                                    ? "scale-125 opacity-100"
+                                    : "scale-100 opacity-0 group-hover:opacity-60"
                                     }`}
                             />
+
+                            {/* Avatar Circle */}
                             <div
-                                className={`relative w-28 h-28 rounded-full bg-card border-2 flex items-center justify-center shadow-xl transition-all duration-300 z-10 ${isAISpeaking ? "border-primary shadow-primary/20" : "border-border"
-                                    }`}
+                                className={`relative w-44 h-44 rounded-full 
+    bg-gradient-to-br from-primary/10 to-primary/5
+    border border-primary/20 
+    shadow-[0_0_60px_rgba(59,130,246,0.25)]
+    flex items-center justify-center
+    overflow-hidden
+    transition-all duration-500
+    ${isAISpeaking ? "scale-110" : ""}
+    `}
                             >
                                 {isAISpeaking ? (
-                                    <div className="flex space-x-1">
+                                    <div className="flex space-x-2">
                                         {[1, 2, 3].map((i) => (
                                             <div
                                                 key={i}
-                                                className="w-1.5 h-6 bg-primary rounded-full animate-bounce"
+                                                className="w-2 h-10 bg-primary rounded-full animate-bounce"
                                                 style={{ animationDelay: `${i * 0.15}s` }}
                                             />
                                         ))}
                                     </div>
                                 ) : (
-                                    <Mic className="w-7 h-7 text-muted-foreground" />
+                                    <Image
+                                        src="/ai.png"
+                                        alt="AI Assistant"
+                                        fill
+                                        className="object-contain p-10 transition-transform duration-300 group-hover:scale-105"
+                                        priority
+                                    />
                                 )}
                             </div>
                         </div>
@@ -712,8 +735,8 @@ export default function LiveInterviewPage() {
                             <button
                                 onClick={toggleRecording}
                                 className={`relative group w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${isRecording
-                                        ? "bg-destructive/10 border-2 border-destructive shadow-destructive/20"
-                                        : "bg-card border border-border hover:border-primary/50 hover:bg-accent"
+                                    ? "bg-destructive/10 border-2 border-destructive shadow-destructive/20"
+                                    : "bg-card border border-border hover:border-primary/50 hover:bg-accent"
                                     }`}
                             >
                                 {isRecording ? (

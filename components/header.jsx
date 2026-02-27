@@ -28,10 +28,10 @@ export default async function Header() {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/">
           <Image
-            src={"/logo.png"}
+            src={"/logo2.png"}
             alt="Sensai Logo"
-            width={200}
-            height={60}
+            width={500}
+            height={100}
             className="h-12 py-1 w-auto object-contain"
           />
         </Link>

@@ -21,6 +21,15 @@ export default function Quiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState("");
+  const companies = [
+    "Google",
+    "Amazon",
+    "Microsoft",
+    "Meta",
+    "Netflix",
+    "Apple",
+  ];
 
   const {
     loading: generatingQuiz,
@@ -80,7 +89,8 @@ export default function Quiz() {
     setCurrentQuestion(0);
     setAnswers([]);
     setShowExplanation(false);
-    generateQuizFn();
+    generateQuizFn(selectedCompany);
+
     setResultData(null);
   };
 
@@ -99,25 +109,57 @@ export default function Quiz() {
 
   if (!quizData) {
     return (
-      <Card className="mx-2">
-        <CardHeader>
-          <CardTitle>Ready to test your knowledge?</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            This quiz contains 10 questions specific to your industry and
-            skills. Take your time and choose the best answer for each question.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={generateQuizFn} className="w-full">
-            Start Quiz
-          </Button>
-        </CardFooter>
-      </Card>
+      <div className="mx-2 flex justify-center">
+        <Card className="w-full max-w-xl shadow-lg border-muted">
+          <CardHeader className="space-y-2 text-center">
+            <CardTitle className="text-2xl font-bold">
+              Ready to test your knowledge?
+            </CardTitle>
+            <p className="text-muted-foreground text-sm">
+              This quiz contains 10 company-specific technical interview questions.
+              Choose a company below and start practicing.
+            </p>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* Company Selector */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Select Company
+              </Label>
+              <select
+                className="w-full h-11 px-3 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-primary transition"
+                value={selectedCompany}
+                onChange={(e) => setSelectedCompany(e.target.value)}
+              >
+                <option value="">Choose a company</option>
+                {companies.map((company) => (
+                  <option key={company} value={company}>
+                    {company}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* CTA Button */}
+            <Button
+              onClick={() => {
+                if (!selectedCompany) {
+                  toast.error("Please select a company");
+                  return;
+                }
+                generateQuizFn(selectedCompany);
+              }}
+              disabled={!selectedCompany}
+              className="w-full h-11 text-base font-medium"
+            >
+              Start Quiz
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
-
   const question = quizData[currentQuestion];
 
   return (
