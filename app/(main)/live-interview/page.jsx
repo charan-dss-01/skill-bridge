@@ -22,6 +22,9 @@ import {
     BarChart3,
     TrendingUp,
     Sparkles,
+    Crown,
+    Waves,
+    Quote,
 } from "lucide-react";
 import {
     BarChart,
@@ -410,11 +413,15 @@ export default function LiveInterviewPage() {
         };
 
         return (
-            <div className="min-h-screen bg-background text-foreground pt-24 pb-12 px-4 md:px-8">
+            <div className="min-h-screen bg-[radial-gradient(circle_at_20%_0%,hsl(var(--primary)/0.12),transparent_38%),radial-gradient(circle_at_80%_100%,hsl(var(--primary)/0.1),transparent_35%),hsl(var(--background))] text-foreground pt-24 pb-12 px-4 md:px-8">
                 <div className="max-w-6xl mx-auto space-y-8">
                     {/* Header */}
                     <div className="text-center space-y-3 animate-in fade-in-50 duration-500">
-                        <h1 className="text-5xl font-bold gradient-title">Interview Complete</h1>
+                        <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-semibold tracking-[0.14em] uppercase text-primary">
+                            <Crown className="h-3.5 w-3.5" />
+                            Premium Interview Report
+                        </div>
+                        <h1 className="text-5xl font-bold gradient-title mt-3">Interview Complete</h1>
                         <p className="text-muted-foreground text-lg">
                             Here is your comprehensive performance analysis
                         </p>
@@ -422,7 +429,7 @@ export default function LiveInterviewPage() {
 
                     {/* Hero Score Section */}
                     <div className="animate-in fade-in-50 slide-in-from-bottom-4 duration-700">
-                        <Card className="overflow-hidden">
+                        <Card className="overflow-hidden border-primary/20 shadow-[0_24px_60px_-32px_hsl(var(--primary)/0.45)] backdrop-blur-sm bg-card/80">
                             <CardContent className="pt-8 pb-8">
                                 <div className="flex flex-col lg:flex-row items-center gap-8">
                                     {/* Score Ring */}
@@ -473,7 +480,7 @@ export default function LiveInterviewPage() {
 
                     {/* Bar Chart */}
                     <div className="animate-in fade-in-50 slide-in-from-bottom-4 duration-700 delay-300">
-                        <Card>
+                        <Card className="border-primary/15 bg-card/85 backdrop-blur-sm">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <BarChart3 className="w-5 h-5 text-primary" />
@@ -509,7 +516,7 @@ export default function LiveInterviewPage() {
 
                     {/* Strengths & Weaknesses */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-700 delay-500">
-                        <Card className="hover:shadow-lg transition-shadow duration-300">
+                        <Card className="hover:shadow-lg transition-shadow duration-300 border-green-500/20 bg-green-500/[0.03]">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -531,7 +538,7 @@ export default function LiveInterviewPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="hover:shadow-lg transition-shadow duration-300">
+                        <Card className="hover:shadow-lg transition-shadow duration-300 border-amber-500/20 bg-amber-500/[0.03]">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <AlertTriangle className="w-5 h-5 text-amber-500" />
@@ -556,7 +563,7 @@ export default function LiveInterviewPage() {
 
                     {/* Filler Analysis + Action Plan */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-700 delay-700">
-                        <Card className="hover:shadow-lg transition-shadow duration-300">
+                        <Card className="hover:shadow-lg transition-shadow duration-300 border-primary/15 bg-card/85">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <MessageSquare className="w-5 h-5 text-primary" />
@@ -594,7 +601,7 @@ export default function LiveInterviewPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="hover:shadow-lg transition-shadow duration-300">
+                        <Card className="hover:shadow-lg transition-shadow duration-300 border-primary/15 bg-card/85">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-lg">
                                     <Sparkles className="w-5 h-5 text-primary" />
@@ -632,26 +639,32 @@ export default function LiveInterviewPage() {
     //  RENDER: Interview Room
     // ========================================================================
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden flex flex-col md:flex-row">
-            {/* Subtle ambient gradient */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="min-h-screen bg-[radial-gradient(circle_at_15%_15%,hsl(var(--primary)/0.16),transparent_32%),radial-gradient(circle_at_88%_85%,hsl(var(--primary)/0.12),transparent_35%),hsl(var(--background))] relative overflow-hidden flex flex-col md:flex-row">
+            <div className="absolute inset-0 pointer-events-none opacity-60 [background-image:linear-gradient(hsl(var(--border)/0.35)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/0.35)_1px,transparent_1px)] [background-size:42px_42px]" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[580px] bg-primary/10 rounded-full blur-[130px] pointer-events-none" />
 
             {/* Main Interview Area */}
             <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 w-full md:w-2/3 h-[60vh] md:h-screen">
                 {isAIThinking || questions.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center space-y-6">
-                        <div className="w-28 h-28 rounded-full border-4 border-muted border-t-primary animate-spin" />
-                        <p className="text-primary animate-pulse font-medium text-lg tracking-wide">
+                    <div className="w-full max-w-xl rounded-3xl border border-primary/20 bg-card/80 backdrop-blur-xl p-8 flex flex-col items-center justify-center space-y-6 shadow-[0_22px_65px_-34px_hsl(var(--primary)/0.6)]">
+                        <div className="relative">
+                            <div className="w-24 h-24 rounded-full border-[3px] border-muted border-t-primary animate-spin" />
+                            <Waves className="w-8 h-8 text-primary absolute inset-0 m-auto animate-pulse" />
+                        </div>
+                        <p className="text-primary font-semibold text-lg tracking-wide text-center">
                             {questions.length === 0
                                 ? "Preparing your custom interview..."
                                 : "Evaluating your answers..."}
                         </p>
+                        <p className="text-sm text-muted-foreground text-center max-w-sm">
+                            We are calibrating this session to your role and industry so the interview feels realistic and actionable.
+                        </p>
                     </div>
                 ) : (
-                    <div className="w-full max-w-2xl flex flex-col items-center space-y-10">
+                    <div className="w-full max-w-3xl rounded-3xl border border-primary/20 bg-card/85 backdrop-blur-xl shadow-[0_28px_70px_-36px_hsl(var(--primary)/0.55)] p-6 md:p-8 flex flex-col items-center space-y-8">
                         {/* Question counter + End Early */}
                         <div className="w-full flex justify-between items-center px-4">
-                            <Badge variant="outline">
+                            <Badge variant="outline" className="bg-background/70 border-primary/20">
                                 Question {currentIndex + 1} of {questions.length}
                             </Badge>
                             <Button
@@ -669,7 +682,7 @@ export default function LiveInterviewPage() {
                             {[...Array(questions.length)].map((_, i) => (
                                 <div
                                     key={i}
-                                    className={`h-1.5 w-full rounded-full transition-all duration-500 ${i <= currentIndex ? "bg-primary" : "bg-muted"
+                                    className={`h-2 w-full rounded-full transition-all duration-500 ${i <= currentIndex ? "bg-primary" : "bg-muted"
                                         }`}
                                 />
                             ))}
@@ -694,7 +707,7 @@ export default function LiveInterviewPage() {
                                 className={`relative w-44 h-44 rounded-full 
     bg-gradient-to-br from-primary/10 to-primary/5
     border border-primary/20 
-    shadow-[0_0_60px_rgba(59,130,246,0.25)]
+    shadow-[0_0_70px_hsl(var(--primary)/0.33)]
     flex items-center justify-center
     overflow-hidden
     transition-all duration-500
@@ -724,14 +737,15 @@ export default function LiveInterviewPage() {
                         </div>
 
                         {/* Question text */}
-                        <div className="text-center w-full px-6 min-h-[80px] flex items-center justify-center">
+                        <div className="text-center w-full px-6 py-4 min-h-[100px] flex items-center justify-center rounded-2xl border border-primary/15 bg-background/60">
                             <h2 className="text-2xl md:text-3xl font-medium text-foreground leading-relaxed">
-                                &ldquo;{questions[currentIndex]}&rdquo;
+                                <Quote className="inline-block w-6 h-6 mr-2 text-primary/65 -translate-y-1" />
+                                {questions[currentIndex]}
                             </h2>
                         </div>
 
                         {/* Recording Controls */}
-                        <div className="mt-8 flex flex-col items-center space-y-5">
+                        <div className="mt-4 flex flex-col items-center space-y-5 w-full">
                             <button
                                 onClick={toggleRecording}
                                 className={`relative group w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${isRecording
@@ -757,7 +771,7 @@ export default function LiveInterviewPage() {
                                 </p>
 
                                 <textarea
-                                    className="mt-3 bg-card border border-border rounded-lg text-foreground p-3 w-64 md:w-96 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all resize-none"
+                                    className="mt-3 bg-background/70 border border-primary/20 rounded-xl text-foreground p-3 w-72 md:w-[32rem] text-sm focus:outline-none focus:ring-2 focus:ring-primary/45 transition-all resize-none"
                                     placeholder="Or type your answer here..."
                                     value={currentAnswer}
                                     onChange={(e) => setCurrentAnswer(e.target.value)}
@@ -768,7 +782,7 @@ export default function LiveInterviewPage() {
 
                         {/* Next / Complete Button */}
                         {currentAnswer.trim() && !isRecording && (
-                            <Button onClick={handleNextQuestion} size="lg" className="px-8 py-6 text-lg font-medium rounded-full shadow-lg hover:shadow-xl transition-all">
+                            <Button onClick={handleNextQuestion} size="lg" className="px-8 py-6 text-lg font-medium rounded-full shadow-lg hover:shadow-xl transition-all bg-primary hover:bg-primary/90">
                                 {currentIndex < questions.length - 1 ? "Next Question" : "Complete Interview"}
                                 <ArrowRight className="ml-2 w-5 h-5" />
                             </Button>
@@ -782,7 +796,7 @@ export default function LiveInterviewPage() {
                 <div className="absolute top-6 right-6 z-50">
                     <Button
                         variant="outline"
-                        className="backdrop-blur-md"
+                        className="backdrop-blur-md border-primary/20 bg-card/75 hover:bg-card"
                         onClick={() => setShowTranscript(!showTranscript)}
                     >
                         {showTranscript ? (
@@ -807,7 +821,7 @@ export default function LiveInterviewPage() {
                         variant="outline"
                         size="sm"
                         onClick={handleEndEarly}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10 bg-card/75 border-destructive/30"
                     >
                         <XSquare className="w-4 h-4 mr-2" /> End
                     </Button>
@@ -816,7 +830,7 @@ export default function LiveInterviewPage() {
 
             {/* Side Transcript Panel */}
             <div
-                className={`fixed inset-y-0 right-0 w-[85vw] sm:w-[50vw] md:w-[400px] bg-card/95 backdrop-blur-xl border-l border-border p-6 flex flex-col h-full overflow-y-auto transition-transform duration-500 ease-in-out z-40 transform ${showTranscript ? "translate-x-0" : "translate-x-full"
+                className={`fixed inset-y-0 right-0 w-[85vw] sm:w-[50vw] md:w-[420px] bg-card/96 backdrop-blur-xl border-l border-primary/20 p-6 flex flex-col h-full overflow-y-auto transition-transform duration-500 ease-in-out z-40 transform ${showTranscript ? "translate-x-0" : "translate-x-full"
                     }`}
             >
                 <h3 className="text-muted-foreground font-medium tracking-wider uppercase text-xs mb-6 flex items-center sticky top-0 bg-card/90 py-2 z-10 w-full">
